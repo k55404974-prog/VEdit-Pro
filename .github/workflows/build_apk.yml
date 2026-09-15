@@ -1,0 +1,69 @@
+name: Build VEdit Pro APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract VEdit Pro source ZIP
+        run: |
+          mkdir -p project
+          unzip -o VEditPro_Android_100Percent_Final.zip -d project
+
+      - name: Find Flutter project
+        run: |
+          if [ -f project/pubspec.yaml ]; then
+            echo "PROJECT_DIR=project" >> "$GITHUB_ENV"
+          else
+            DIR=$(find project -name pubspec.yaml -type f -print -quit | xargs dirname)
+            echo "PROJECT_DIR=$DIR" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android wrapper
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter create --platforms=android --no-pub .
+
+      - name: Set Android minSdk
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+          s = s.replace("minSdk = flutter.minSdkVersion", "minSdk = 24")
+          s = s.replace("minSdkVersion flutter.minSdkVersion", "minSdkVersion 24")
+          p.write_text(s)
+          PY
+
+      - name: Get dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter analyze
+
+      - name: Build release APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: vedit-pro-release-apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
