@@ -49,6 +49,32 @@ jobs:
           sed -i 's#android:style/Theme.Light.NoActionBar#android:style/Theme.Material.Light.NoActionBar#g' android/app/src/main/res/values/styles.xml
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/g' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/g' android/app/build.gradle
+      - name: Set Java and Kotlin to 17
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+
+          s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
+          s = s.replace("jvmTarget = '1.8'", "jvmTarget = '17'")
+          s = s.replace('jvmTarget = "1.8"', 'jvmTarget = "17"')
+
+          s += """
+
+          tasks.withType(JavaCompile).configureEach {
+              options.release = 17
+          }
+
+          tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+              kotlinOptions.jvmTarget = "17"
+          }
+          """
+
+          p.write_text(s)
+          PY
       - name: Disable Android new DSL
         working-directory: ${{ env.PROJECT_DIR }}
         run: echo "android.newDsl=false" >> android/gradle.properties
