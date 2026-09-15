@@ -38,6 +38,11 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter create --platforms=android --no-pub .
 
+- name: Fix Android theme
+  working-directory: ${{ env.PROJECT_DIR }}
+  run: |
+    sed -i 's/android:style\/Theme.Light.NoActionBar/android:style\/Theme.Material.Light.NoActionBar/g' android/app/src/main/res/values/styles.xml
+    rm -f android/app/build.gradle.kts
       - name: Remove generated test
         working-directory: ${{ env.PROJECT_DIR }}
         run: rm -rf test
