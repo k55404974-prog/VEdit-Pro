@@ -31,8 +31,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          cache: true
+         flutter-version: 3.35.7
+         cache: true
 
       - name: Generate Android wrapper
         working-directory: ${{ env.PROJECT_DIR }}
