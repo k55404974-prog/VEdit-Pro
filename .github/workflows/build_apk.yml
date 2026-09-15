@@ -62,13 +62,33 @@ jobs:
           s = s.replace("jvmTarget = '1.8'", "jvmTarget = '17'")
           s = s.replace('jvmTarget = "1.8"', 'jvmTarget = "17"')
 
+          # Remove any Java --release setting
+          lines = s.splitlines()
+          lines = [line for line in lines if "options.release" not in line]
+          s = "\n".join(lines) + "\n"
+
+          # Ensure Android Java compatibility is Java 17
+          if "compileOptions {" in s:
+              s = s.replace(
+                  "compileOptions {",
+                  "compileOptions {\n"
+                  "        sourceCompatibility JavaVersion.VERSION_17\n"
+                  "        targetCompatibility JavaVersion.VERSION_17",
+                  1
+              )
+          else:
+              s = s.replace(
+                  "android {",
+                  "android {\n"
+                  "    compileOptions {\n"
+                  "        sourceCompatibility JavaVersion.VERSION_17\n"
+                  "        targetCompatibility JavaVersion.VERSION_17\n"
+                  "    }",
+                  1
+              )
+
           s += """
-
-          tasks.withType(JavaCompile).configureEach {
-              options.release = 17
-          }
-
-           tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+          tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
               kotlinOptions.jvmTarget = "17"
           }
           """
