@@ -50,10 +50,11 @@ jobs:
 
           p = Path("lib/main.dart")
           s = p.read_text()
-          s = s.replace(
+                    s = s.replace(
               "clamp(1000, double.infinity)",
               "clamp(1000.0, double.infinity)"
-                    p.write_text(s)
+          )
+          p.write_text(s)
 
           p = Path("android/app/src/main/res/values/styles.xml")
           if p.exists():
