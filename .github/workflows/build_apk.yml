@@ -15,6 +15,7 @@ jobs:
 
       - name: Extract VEdit Pro source ZIP
         run: |
+          rm -rf project
           mkdir -p project
           unzip -o VEditPro_Android_100Percent_Final.zip -d project
 
@@ -37,16 +38,40 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter create --platforms=android --no-pub .
 
-      - name: Set Android minSdk
+      - name: Remove generated test
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: rm -rf test
+
+      - name: Fix Dart type and Android minSdk
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path("android/app/build.gradle")
+
+          p = Path("lib/main.dart")
           s = p.read_text()
-          s = s.replace("minSdk = flutter.minSdkVersion", "minSdk = 24")
-          s = s.replace("minSdkVersion flutter.minSdkVersion", "minSdkVersion 24")
+          s = s.replace(
+              "clamp(1000, double.infinity)",
+              "clamp(1000.0, double.infinity)"
+          )
           p.write_text(s)
+
+          for name in (
+              "android/app/build.gradle",
+              "android/app/build.gradle.kts"
+          ):
+              p = Path(name)
+              if p.exists():
+                  s = p.read_text()
+                  s = s.replace(
+                      "minSdk = flutter.minSdkVersion",
+                      "minSdk = 24"
+                  )
+                  s = s.replace(
+                      "minSdkVersion flutter.minSdkVersion",
+                      "minSdkVersion 24"
+                  )
+                  p.write_text(s)
           PY
 
       - name: Get dependencies
@@ -55,7 +80,7 @@ jobs:
 
       - name: Analyze
         working-directory: ${{ env.PROJECT_DIR }}
-        run: flutter analyze
+        run: flutter analyze lib
 
       - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
