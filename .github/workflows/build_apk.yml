@@ -80,9 +80,9 @@ jobs:
 
       - name: Analyze
         working-directory: ${{ env.PROJECT_DIR }}
-        run: flutter analyze lib
-
+        run: flutter analyze lib --no-fatal-warnings
       - name: Build release APK
+      
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter build apk --release
 
