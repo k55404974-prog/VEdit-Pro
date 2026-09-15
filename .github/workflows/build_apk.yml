@@ -37,8 +37,7 @@ jobs:
       - name: Generate Android wrapper
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter create --platforms=android --no-pub .
-
-- name: Fix Android theme
+        - name: Fix Android theme
   working-directory: ${{ env.PROJECT_DIR }}
   run: |
     sed -i 's/android:style\/Theme.Light.NoActionBar/android:style\/Theme.Material.Light.NoActionBar/g' android/app/src/main/res/values/styles.xml
