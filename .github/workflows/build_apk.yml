@@ -45,26 +45,10 @@ jobs:
       - name: Fix Dart type and Android minSdk
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path("lib/main.dart")
-          s = p.read_text()
-                    s = s.replace(
-              "clamp(1000, double.infinity)",
-              "clamp(1000.0, double.infinity)"
-          )
-          p.write_text(s)
-
-          p = Path("android/app/src/main/res/values/styles.xml")
-          if p.exists():
-              s = p.read_text()
-              s = s.replace(
-                  "android:style/Theme.Light.NoActionBar",
-                  "android:style/Theme.Material.Light.NoActionBar"
-              )
-              p.write_text(s)
-          PY
+          sed -i 's/clamp(1000, double.infinity)/clamp(1000.0, double.infinity)/g' lib/main.dart
+          sed -i 's#android:style/Theme.Light.NoActionBar#android:style/Theme.Material.Light.NoActionBar#g' android/app/src/main/res/values/styles.xml
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/g' android/app/build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/g' android/app/build.gradle
       - name: Disable Android new DSL
         working-directory: ${{ env.PROJECT_DIR }}
         run: echo "android.newDsl=false" >> android/gradle.properties
