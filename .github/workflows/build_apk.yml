@@ -73,7 +73,9 @@ jobs:
                   )
                   p.write_text(s)
           PY
-
+      - name: Disable Android new DSL
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: echo "android.newDsl=false" >> android/gradle.properties
       - name: Remove generated test
         working-directory: ${{ env.PROJECT_DIR }}
         run: rm -rf test
